@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:fypstart/getStarted.dart';
 import 'package:fypstart/loginscreen.dart';
 
 String savedPhoneData = "";
@@ -17,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
       Timer(Duration(seconds: 3), () {
         Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context) =>LoginPage()));
+            builder: (context) =>GetStarted()));
       });
   }
 

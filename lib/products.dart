@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fypstart/productSellers.dart';
 
 class productsShow extends StatefulWidget {
   const productsShow({Key? key}) : super(key: key);
@@ -27,9 +28,11 @@ class _productsShowState extends State<productsShow> {
           alignment: Alignment.center,
           children: [
             Ink.image(
-              image: AssetImage('assets/images/netflix.png'),
+              image: AssetImage('assets/images/netFlix.png'),
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => productSellers()));
+        },
       ),
               height: 180,
               fit: BoxFit.cover,

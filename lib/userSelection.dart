@@ -15,10 +15,6 @@ class selectionCard extends StatelessWidget {
         leading: IconButton(onPressed: () {
           Navigator.pop(context);
         }, icon: Icon(Icons.arrow_back,color: Colors.black,))
-        // GestureDetector(onTap: () => Navigator.pop(context),
-        //     child: Icon(Icons.arrow_back,
-        //     )
-        // ),
       ),
       body: SafeArea(
 

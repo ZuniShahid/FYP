@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fypstart/AdminScreen.dart';
 import 'package:fypstart/splashScreen.dart';
 
 void main() {
