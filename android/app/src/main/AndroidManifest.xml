@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.fypstart">
    <application
-        android:label="fypstart"
+        android:label="We Partners"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

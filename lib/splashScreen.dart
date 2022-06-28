@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fypstart/getStarted.dart';
 import 'package:fypstart/loginscreen.dart';
 
-String savedPhoneData = "";
+
 
 class SplashScreen extends StatefulWidget {
   static const String id = 'SplashScreen';

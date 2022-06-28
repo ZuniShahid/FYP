@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fypstart/products.dart';
+import 'package:fypstart/MainPageForNavigation.dart';
+import 'package:fypstart/Products/selectProducts.dart';
 import 'package:fypstart/splash_content.dart';
 
 import 'constants.dart';
@@ -33,7 +34,6 @@ class _BodyState extends State<GetStarted> {
             SizedBox(
               height: 100,
             ),
-
             Expanded(
               flex: 3,
               child: PageView.builder(
@@ -83,7 +83,7 @@ class _BodyState extends State<GetStarted> {
                                     side: BorderSide(color: kPrimaryColor)))),
                         onPressed: () =>
                             Navigator.of(context).push(MaterialPageRoute(
-                              builder: (BuildContext context) => productsShow(),
+                              builder: (BuildContext context) => MainMenu(),
                             )),
                         child: Text(
                           "Get Started",

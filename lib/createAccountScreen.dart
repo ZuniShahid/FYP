@@ -1,9 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
-import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:fypstart/MainPageForNavigation.dart';
+import 'package:fypstart/firebase/DatabaseCollections.dart';
+import 'package:fypstart/widgets/loaderDialog.dart';
+import 'firebase/authentication.dart';
+import 'loginscreen.dart';
 
 class createAccount extends StatefulWidget {
   static const String id = 'createAccount';
+  String usertype;
+  createAccount({required this.usertype});
   @override
   State<createAccount> createState() => _createAccountState();
 }
@@ -12,8 +19,10 @@ class _createAccountState extends State<createAccount> {
   TextEditingController firstNameFieldController= TextEditingController();
   TextEditingController secondNameFieldController= TextEditingController();
   TextEditingController emailFieldController= TextEditingController();
+  TextEditingController phoneFieldController= TextEditingController();
   TextEditingController passwordFieldController= TextEditingController();
   bool passwordFieldVisibility = false;
+  var authHandler = new Auth();
   final scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void initState() {
@@ -25,12 +34,13 @@ class _createAccountState extends State<createAccount> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 90),
+        child: ListView(
+          children: [
+            Padding(
+            padding: const EdgeInsets.only(top: 50),
             child: Container(
               width:  MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height*0.80,
+              height: MediaQuery.of(context).size.height,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -41,9 +51,8 @@ class _createAccountState extends State<createAccount> {
                     child: Divider(color: Colors.grey[300],
                       thickness: 2.0,),
                   ),
-
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0,horizontal: 18.0),
+                    padding: const EdgeInsets.symmetric(vertical: 20.0,horizontal: 18.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -94,6 +103,26 @@ class _createAccountState extends State<createAccount> {
                               filled: true,
                               prefixIcon: Icon(
                                 Icons.email,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          height: 15,
+                        ),
+                        Align(
+                          child: TextFormField(
+                            controller: phoneFieldController,
+                            maxLength: 11,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              hintText: 'Enter Phone number',
+                              filled: true,
+                              prefixIcon: Icon(
+                                Icons.phone,
                               ),
                             ),
                           ),
@@ -159,26 +188,92 @@ class _createAccountState extends State<createAccount> {
                                       )
                                   )
                               ),
-                              onPressed: () => null
+                              onPressed: () async {
+                                String fname = firstNameFieldController.text,lname=secondNameFieldController.text,email = emailFieldController.text,
+                                    password = passwordFieldController.text;
+                                UserCredential userCredential;
+                                try {
+                                  if(RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(email)) {
+                                    if (password.length > 7) {
+                                      if(phoneFieldController.text.length == 11){
+                                        showLoaderDialog(context);
+                                        userCredential =
+                                        await FirebaseAuth.instance
+                                            .createUserWithEmailAndPassword(
+                                            email: emailFieldController.text,
+                                            password: passwordFieldController.text
+                                        );
+                                        var user = FirebaseAuth.instance
+                                            .currentUser;
+                                        if(widget.usertype == 'premiumuser'){
+                                          databaseCollections()
+                                              .registerPremiumUser(
+                                              fname, lname, email, phoneFieldController.text, user!.uid)
+                                              .then((value) async {
+                                            final snackBar = SnackBar(
+                                              content: const Text(
+                                                  'Successfully Login'),
+                                            );
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(snackBar);
+                                            Navigator.pop(context);
+                                            Navigator.push(context,
+                                                new MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MainMenu()));
+                                          });
+                                        } else {
+                                          databaseCollections()
+                                              .registerSimpleUser(
+                                              fname, lname, email, phoneFieldController.text,user!.uid)
+                                              .then((value) async {
+                                            final snackBar = SnackBar(
+                                              content: const Text(
+                                                  'Successfully Login'),
+                                            );
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(snackBar);
+                                            Navigator.pop(context);
+                                            Navigator.push(context,
+                                                new MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MainMenu()));
+                                          });
+                                        }
+                                      }
+                                      else{
+                                        final snackBar = SnackBar(
+                                          content: const Text('Phone number must be 11 characters'),
+                                        );
+                                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                      }
+
+                                    }
+                                    else {
+                                      final snackBar = SnackBar(
+                                        content: const Text('Password must be 8 characters'),
+                                      );
+                                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                    }
+                                  }
+                                  else {
+                                    final snackBar = SnackBar(
+                                      content: const Text('Invalid Email'),
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                  }
+
+                                } on FirebaseAuthException catch (e) {
+                                  if (e.code == 'weak-password') {
+                                    print('The password provided is too weak.');
+                                  } else if (e.code == 'email-already-in-use') {
+                                    print('The account already exists for that email.');
+                                  }
+                                } catch (e) {
+                                  print(e);
+                                }
+                              }
                           ),
-                        ),
-                        SizedBox(
-                          height: 30,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('Already have an account?'),
-                            InkWell(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                ' Login',
-                                style: TextStyle(color: Colors.blue),
-                              ),
-                            )
-                          ],
                         ),
                       ],
                     ),
@@ -186,60 +281,12 @@ class _createAccountState extends State<createAccount> {
                   SizedBox(
                     height: 10,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Container(
-                      child: Row(
-                          children: <Widget>[
-                            Expanded(
-                                child: Divider(
-                                  color: Colors.grey[300],
-                                  thickness: 2.0,
-                                )
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text("OR"),
-                            ),
-                            Expanded(
-                                child: Divider(
-                                  color: Colors.grey[300],
-                                  thickness: 2.0,
-                                )
-                            ),
-                          ]
-                      ),
-                    ),
-                  ),
 
-                  SizedBox(
-                    height: 40,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                    child: Column(
-                      children: [
-                        SignInButton(
-                          Buttons.Google,
-                          text: "Login with Google",
-                          onPressed: () {},
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        SignInButton(
-                          Buttons.Facebook,
-                          text: "Login with Facebook",
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
-
           ),
+      ]
         ),
       ),
     );

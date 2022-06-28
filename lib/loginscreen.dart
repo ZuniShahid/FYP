@@ -1,10 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:fypstart/userSelection.dart';
+import 'package:fypstart/widgets/loaderDialog.dart';
 
+import 'MainPageForNavigation.dart';
 import 'createAccountScreen.dart';
+import 'firebase/authentication.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 
-class LoginPage extends StatefulWidget {
+
+class  LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -26,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.only(top: 90),
+            padding: const EdgeInsets.only(top: 40),
             child: Container(
               width:  MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height*0.75,
@@ -99,18 +105,18 @@ class _LoginPageState extends State<LoginPage> {
                           width: MediaQuery.of(context).size.width*0.4,
                           child: ElevatedButton(
                               child:Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                Icon(Icons.login),
+                                  Icon(Icons.login),
                                   SizedBox(
                                     width: 10,
                                   ),
-                              Text(
-                                    "LOGIN".toUpperCase(),
-                                    style: TextStyle(fontSize: 18)
-                                )
-                              ],),
+                                  Text(
+                                      "LOGIN".toUpperCase(),
+                                      style: TextStyle(fontSize: 18)
+                                  )
+                                ],),
                               style: ButtonStyle(
                                   foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
                                   backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
@@ -121,7 +127,48 @@ class _LoginPageState extends State<LoginPage> {
                                       )
                                   )
                               ),
-                              onPressed: () => null
+                              onPressed: () async{
+                                String email = emailFieldController.text,
+                                    password = passwordFieldController.text;
+                                try {
+                                  if(RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(email)) {
+                                    if (password.length > 7) {
+                                      showLoaderDialog(context);
+                                      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+                                          email: emailFieldController.text,
+                                          password: passwordFieldController.text
+                                      );
+                                      //Navigator.push(context, MaterialPageRoute(builder: (context) => MainMenu()));
+                                      Navigator.pop(context);
+                                      final snackBar = SnackBar(
+                                        content: const Text('Successfully Login'),
+                                      );
+                                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(builder: (c) => MainMenu()),
+                                              (route) => false);
+                                    }
+                                    else {
+                                      final snackBar = SnackBar(
+                                        content: const Text('Password must be 8 characters'),
+                                      );
+                                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                    }
+                                  }
+                                  else {
+                                    final snackBar = SnackBar(
+                                      content: const Text('Invalid Email'),
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                  }
+                                }on FirebaseAuthException catch (e) {
+                                  if (e.code == 'user-not-found') {
+                                    print('No user found for that email.');
+                                  } else if (e.code == 'wrong-password') {
+                                    print('Wrong password provided for that user.');
+                                  }
+                                }
+                              }
                           ),
                         ),
                         SizedBox(
@@ -133,7 +180,7 @@ class _LoginPageState extends State<LoginPage> {
                             Text('Don\'t have an account?'),
                             InkWell(
                               onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => selectionCard()));
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => userSelection()));
                               },
                               child: Text(
                                 ' Create an account',
@@ -171,7 +218,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   SizedBox(
-                    height: 40,
+                    height: 10,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18.0),

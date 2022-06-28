@@ -1,53 +1,68 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fypstart/sellerView.dart';
 
 class productSellers extends StatefulWidget {
 
+  String productName;
+  productSellers({required this.productName});
   @override
   State<productSellers> createState() => _productSellersState();
 }
 
 class _productSellersState extends State<productSellers> {
-  List<Map<String, String>> sellersData=[];
+  int length =0;
   @override
   void initState() {
-    sellersData = [
-      {"title": "Zunair", "price":"150","persons":"9"},
-      {"title": "Ahsan","price":"180","persons":"4"},
-      {"title": "Yousaf","price":"130","persons":"3"},
-      {"title": "saad","price":"160","persons":"1"},
-      {"title": "Babar","price":"155","persons":"3"},
-      {"title": "Tariz", "price":"150","persons":"9"},
-      {"title": "Shabrez","price":"180","persons":"4"},
-      {"title": "Muzamil","price":"130","persons":"3"},
-      {"title": "Arham","price":"160","persons":"1"},
-      {"title": "Ali","price":"155","persons":"3"},
-    ];
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(child:
-    Scaffold(appBar: AppBar(title: Text('Sellers'),),body: ListView.builder(
-
-      itemCount: sellersData.length,
-      itemBuilder: (context, index) {
-        return Container(
-          child: sellerCardItems(title: sellersData[index]['title'].toString(),
-              price: sellersData[index]['price'].toString(),
-              persons: sellersData[index]['persons'].toString(),
-             ),
-        );
-    },
+    return Scaffold(
+      appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: Text('Sellers'),
+          centerTitle: true,
+          leading: IconButton(onPressed: () => Navigator.pop(context),
+              icon: Icon(Icons.arrow_back))),
+      body: Padding(
+        padding: const EdgeInsets.only(top: 15.0),
+        child: Container(
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('ProductRegistrationDetails')
+              .where('productname', isEqualTo: widget.productName)
+              .where('status',isEqualTo: true)
+              .where('declinestatus',isEqualTo: false)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Center(child: CircularProgressIndicator());
+            }
+            return ListView.builder(
+              itemCount: snapshot.data!.docs.length,
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                DocumentSnapshot data = snapshot.data!.docs[index];
+                var temp = snapshot.data!.docs[index].data() as Map;
+                length = snapshot.data!.docs.length;
+                print('Length of Search Packages : ' + length.toString());
+                return sellerCardItems(product: temp);
+              },
+            );
+          },
+        )
     ),
-    ),
+      ),
     );
   }
 }
 
 class sellerCardItems extends StatelessWidget {
-  String title,price,persons;
-  sellerCardItems({required this.title, required this.price, required this.persons});
+  final Map product;
+  sellerCardItems({required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -60,24 +75,27 @@ class sellerCardItems extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           ListTile(
-            title: Text(title),
-            subtitle: Text('Available limit: $persons'),
+            title: Text(product['sellername']),
+            subtitle: Text('Available limit: ${product['totalslots']}'),
             trailing: Container(
               child: Column(
                 children: [
-                  Text('\$ $price'),
+                  Text('RS ${product['perslotprice']}'),
                 ],
               ),
             ),
           ),
           FlatButton(onPressed: () {
-
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return sellerProfile(sellerData: product);
+            },));
           }, child: Wrap(
             children: [
               Icon(Icons.shopping_cart_rounded),
-              Text('Buy'),
+              Text('View'),
             ],
-          ))
+          ),
+          )
         ],
       )
     );
